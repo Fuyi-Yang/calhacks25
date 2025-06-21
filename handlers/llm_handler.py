@@ -1,8 +1,7 @@
-# handlers/llm_handler.py
-
 import os
 from PIL import Image
 import google.generativeai as genai
+
 
 class GeminiLLM:
     """A handler for all interactions with the Google Gemini LLM."""
@@ -18,21 +17,21 @@ class GeminiLLM:
 
     def extract_text_to_latex(self, pdf_path: str, mode: str) -> str:
         """
-        Uses an LLM to convert a PDF file into a LaTeX format.
-        
+        Uses an LLM to convert raw text into a LaTeX format.
+
         Args:
             pdf_path: The path to the PDF file.
             mode: Processing mode ('rewriting', 'summarizing', 'verbatim').
-        
+
         Returns:
             A string containing the document in LaTeX format, with placeholders for figures.
         """
-        print(f"Processing text from PDF in '{mode}' mode...")
-        
+        print(f"Processing text in '{mode}' mode...")
+
         action_prompt = {
-            "rewriting": "Rewrite the text from the attached PDF to improve clarity and flow.",
-            "summarizing": "Summarize the text from the attached PDF concisely.",
-            "verbatim": "Format the text from the attached PDF as-is."
+            "rewriting": "Rewrite the following text to improve clarity and flow.",
+            "summarizing": "Summarize the following text concisely.",
+            "verbatim": "Format the following text as-is.",
         }[mode]
 
         prompt = f"""
@@ -62,10 +61,10 @@ class GeminiLLM:
     def get_figure_descriptions(self, pdf_images: list[Image.Image]) -> list[str]:
         """
         Uses a vision model to find and describe figures on PDF pages.
-        
+
         Args:
             pdf_images: A list of PIL Images, one for each page of the PDF.
-        
+
         Returns:
             A numbered list of descriptions for each figure found.
         """
@@ -83,7 +82,7 @@ class GeminiLLM:
         
         response = self.model.generate_content([prompt] + pdf_images)
         print(f"Found descriptions: \n{response.text}")
-        
+
         # Simple parsing of the numbered list response
         descriptions = [
             line.strip().split('. ', 1)[1] 
@@ -95,10 +94,10 @@ class GeminiLLM:
     def generate_figure_code(self, description: str) -> str:
         """
         Generates Asymptote code for a figure based on its description.
-        
+
         Args:
             description: The text description of the figure.
-        
+
         Returns:
             A string containing Asymptote code.
         """
@@ -124,14 +123,16 @@ class GeminiLLM:
         return code
 
 
-    def merge_latex_and_figures(self, latex_template: str, figure_files: list[str]) -> str:
+    def merge_latex_and_figures(
+        self, latex_template: str, figure_files: list[str]
+    ) -> str:
         """
         Merges the LaTeX template with generated figure files by replacing placeholders.
-        
+
         Args:
             latex_template: The LaTeX document with %%FIGURE_PLACEHOLDER_n%% comments.
             figure_files: A list of file paths for the generated Asymptote .tex files.
-        
+
         Returns:
             The final, complete LaTeX document as a string.
         """
@@ -139,7 +140,7 @@ class GeminiLLM:
         final_latex = latex_template
         for i, fig_path in enumerate(figure_files):
             placeholder = f"%%FIGURE_PLACEHOLDER_{i+1}%%"
-            
+
             # Asymptote generates a .tex file that can be included
             figure_include_code = f"""
 \\begin{{figure}}[htbp]
