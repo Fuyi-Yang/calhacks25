@@ -43,14 +43,13 @@ class DocumentProcessor:
         print("--- Starting Document Processing ---")
         self._prepare_pdf()
         
-        pdf_handler = PDFHandler(self.pdf_path)
-        
         # --- Text Processing Path ---
-        raw_text = pdf_handler.extract_full_text()
-        latex_template = self.llm.extract_text_to_latex(raw_text, self.text_mode)
+        # The LLM can process the PDF directly, which is more robust than text extraction.
+        latex_template = self.llm.extract_text_to_latex(self.pdf_path, self.text_mode)
         
         # --- Figure Processing Path ---
         print("\n--- Checking for Figures ---")
+        pdf_handler = PDFHandler(self.pdf_path)
         pdf_pages_as_images = pdf_handler.get_pages_as_images()
         figure_descriptions = self.llm.get_figure_descriptions(pdf_pages_as_images)
         
@@ -67,9 +66,9 @@ class DocumentProcessor:
         final_latex_doc = self.llm.merge_latex_and_figures(latex_template, generated_figure_files)
         
         # --- Output ---
-        output_filepath = os.path.join(self.output_dir, "output.tex")
-        with open(output_filepath, "w") as f:
+        output_filename = os.path.splitext(os.path.basename(self.pdf_path))[0] + ".tex"
+        output_filepath = os.path.join(self.output_dir, output_filename)
+        with open(output_filepath, "w", encoding='utf-8') as f:
             f.write(final_latex_doc)
             
         print(f"\n✅ Success! Final document saved to: {output_filepath}")
-        print("To compile, you may need to run 'pdflatex -shell-escape output.tex'")

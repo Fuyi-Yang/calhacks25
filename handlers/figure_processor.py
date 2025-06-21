@@ -8,7 +8,7 @@ from utils.latex_renderer import LatexRenderer
 class FigureProcessor:
     """Processes figure descriptions in parallel to generate and render them."""
     
-    MAX_RENDER_ATTEMPTS = 2
+    MAX_RENDER_ATTEMPTS = 3 # Reduced for quicker failure
 
     def __init__(self, llm_handler: GeminiLLM, renderer: LatexRenderer, output_dir: str):
         self.llm = llm_handler
@@ -44,8 +44,9 @@ class FigureProcessor:
                 with open(asy_filepath, "w") as f:
                     f.write(asy_code) # Overwrite with the successful code
                 
-                # The path to be used in the \input command
-                return f"{filename_base}.tex"
+                # The path to be used in the \input command, with forward slashes for TeX
+                relative_path = os.path.join('figures', f"{filename_base}.tex")
+                return relative_path.replace(os.sep, '/')
 
         print(f"Failed to generate and render figure {index+1} after {self.MAX_RENDER_ATTEMPTS} attempts.")
         return None
@@ -73,6 +74,7 @@ class FigureProcessor:
                 try:
                     result_path = future.result()
                     if result_path:
+                        print(f"Successfully processed figure {index + 1}.")
                         successful_figures[index] = result_path
                 except Exception as e:
                     print(f"Error processing figure {index+1}: {e}")
