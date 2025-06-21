@@ -1,5 +1,3 @@
-# handlers/pdf_handler.py
-
 import fitz  # PyMuPDF
 from PIL import Image
 from typing import Optional
@@ -23,6 +21,7 @@ class PDFHandler:
 
     def extract_full_text(self) -> str:
         """Extracts concatenated text from all pages of the PDF."""
+
         full_text = ""
         for page in self.doc:
             full_text += page.get_text() + "\n"
