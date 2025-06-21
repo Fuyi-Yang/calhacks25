@@ -26,17 +26,6 @@ class PDFHandler:
         self.uploaded = genai.upload_file(filepath)
         print("uploaded successfully, my goat")
 
-    def extract_full_text(self) -> str:
-        """Extracts concatenated text from all pages of the PDF."""
-
-        full_text = self.pdf_model.generate_content([
-            "Extract the text from this PDF without any markup or additional commentary."
-            "If the text looks incoherent, try to fill in the blanks yourself to make"
-            "it make sense in the context of a mathematical proof.",
-            self.uploaded
-        ])
-        return full_text
-
     def get_pages_as_images(self) -> list[Image.Image]:
         """Converts each page of the PDF into a PIL Image."""
         images = []
