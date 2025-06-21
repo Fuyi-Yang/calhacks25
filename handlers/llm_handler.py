@@ -13,8 +13,8 @@ class GeminiLLM:
         if not api_key:
             raise ValueError("GOOGLE_API_KEY not found in environment variables.")
         genai.configure(api_key=api_key)
-        self.text_model = genai.GenerativeModel('gemini-pro')
-        self.vision_model = genai.GenerativeModel('gemini-pro-vision')
+        self.text_model = genai.GenerativeModel('gemini-2.5-pro')
+        self.vision_model = genai.GenerativeModel('gemini-2.5-pro')
 
     def extract_text_to_latex(self, full_text: str, mode: str) -> str:
         """
