@@ -1,6 +1,9 @@
-import fitz  # PyMuPDF
+import os
+
+import fitz
+import google.generativeai as genai
 from PIL import Image
-from typing import Optional
+
 
 class PDFHandler:
     """Handles PDF operations like text and image extraction."""
@@ -8,7 +11,7 @@ class PDFHandler:
     def __init__(self, filepath: str):
         """
         Initializes the handler with a path to a PDF file.
-        
+
         Args:
             filepath: The path to the PDF file.
         """
@@ -19,13 +22,20 @@ class PDFHandler:
             raise
         print(f"PDF '{filepath}' loaded successfully with {len(self.doc)} pages.")
 
+        genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+        self.pdf_model = genai.GenerativeModel("gemini-2.5-pro")
+        self.uploaded = genai.upload_file(filepath)
+        print("uploaded successfully, my goat")
+
     def extract_full_text(self) -> str:
         """Extracts concatenated text from all pages of the PDF."""
 
-        full_text = ""
-        for page in self.doc:
-            full_text += page.get_text() + "\n"
-        print("Text extraction from PDF complete.")
+        full_text = self.pdf_model.generate_content([
+            "Extract the text from this PDF without any markup or additional commentary."
+            "If the text looks incoherent, try to fill in the blanks yourself to make"
+            "it make sense in the context of a mathematical proof.",
+            self.uploaded
+        ])
         return full_text
 
     def get_pages_as_images(self) -> list[Image.Image]:
@@ -43,7 +53,7 @@ class PDFHandler:
     def convert_image_to_pdf(image_path: str, output_pdf_path: str) -> None:
         """
         Converts a single image file to a single-page PDF.
-        
+
         Args:
             image_path: Path to the input image.
             output_pdf_path: Path to save the output PDF.
@@ -51,8 +61,8 @@ class PDFHandler:
         try:
             image = Image.open(image_path)
             # Ensure image is in a format that can be saved as PDF
-            if image.mode == 'RGBA':
-                image = image.convert('RGB')
+            if image.mode == "RGBA":
+                image = image.convert("RGB")
             image.save(output_pdf_path, "PDF", resolution=100.0)
             print(f"Image '{image_path}' converted to PDF '{output_pdf_path}'.")
         except Exception as e:
