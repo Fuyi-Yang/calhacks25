@@ -12,8 +12,7 @@ class GeminiLLM:
         if not api_key:
             raise ValueError("GOOGLE_API_KEY not found in environment variables.")
         genai.configure(api_key=api_key)
-        # Use a single, powerful multimodal model. 'gemini-1.5-pro' is a great choice.
-        self.model = genai.GenerativeModel('gemini-1.5-pro-latest')
+        self.model = genai.GenerativeModel('gemini-2.5-pro')
 
     def extract_text_to_latex(self, pdf_path: str, mode: str) -> str:
         """
@@ -29,9 +28,9 @@ class GeminiLLM:
         print(f"Processing text in '{mode}' mode...")
 
         action_prompt = {
-            "rewriting": "Rewrite the following text to improve clarity and flow.",
-            "summarizing": "Summarize the following text concisely.",
-            "verbatim": "Format the following text as-is.",
+            "rewriting": "Rewrite the text from the attached PDF to improve clarity and flow.",
+            "summarizing": "Summarize the text from the attached PDF concisely.",
+            "verbatim": "Format the text from the attached PDF as-is.",
         }[mode]
 
         prompt = f"""
@@ -42,6 +41,7 @@ class GeminiLLM:
         %%FIGURE_PLACEHOLDER_n%%, where 'n' is a sequential 1-based index.
         
         Ensure the output is only the LaTeX code, starting with \\documentclass{{article}}.
+        Make sure to include all the packages used in the LaTeX code.
         Do not include any other explanations or preamble.
         """
         
@@ -145,22 +145,21 @@ class GeminiLLM:
             figure_include_code = f"""
 \\begin{{figure}}[htbp]
     \\centering
-    \\def\\asydir{{figures/}} % Define directory for asymptote
-    \\input{{{fig_path}}}
+    \\includegraphics{{{fig_path}}}
     \\caption{{Generated Figure {i+1}.}}
     \\label{{fig:gen{i+1}}}
 \\end{{figure}}
 """
             final_latex = final_latex.replace(placeholder, figure_include_code.strip())
 
-        # Add asymptote package to preamble if not already there
-        if "\\usepackage{asymptote}" not in final_latex and figure_files:
-            # More robustly add the package after the documentclass line
-            doc_class_line = final_latex.split('\n')[0]
-            final_latex = final_latex.replace(
-                doc_class_line, 
-                f"{doc_class_line}\n\\usepackage[inline]{{asymptote}}"
-            )
+        # # Add asymptote package to preamble if not already there
+        # if "\\usepackage{asymptote}" not in final_latex and figure_files:
+        #     # More robustly add the package after the documentclass line
+        #     doc_class_line = final_latex.split('\n')[0]
+        #     final_latex = final_latex.replace(
+        #         doc_class_line, 
+        #         f"{doc_class_line}\n\\usepackage[inline]{{asymptote}}"
+        #     )
 
         print("Merging complete.")
         return final_latex

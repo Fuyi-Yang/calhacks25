@@ -5,7 +5,7 @@ from document_processor import DocumentProcessor
 
 def main():
     # Load environment variables from .env file
-    load_dotenv()
+    load_dotenv(override=True)
 
     parser = argparse.ArgumentParser(
         description="Convert an image or PDF file to a LaTeX document with generated figures.",

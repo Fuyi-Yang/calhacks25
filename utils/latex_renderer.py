@@ -37,12 +37,12 @@ class LatexRenderer:
             
             # Run asymptote, which will produce a .tex file for inclusion
             result = subprocess.run(
-                ['asy', '-f', 'tex', f'{filename_base}.asy'],
+                ['asy', '-f', 'pdf', f'{filename_base}.asy'],
                 capture_output=True,
                 text=True,
                 check=True # Raises CalledProcessError on non-zero exit codes
             )
-            print(f"Successfully rendered {filename_base}.tex.")
+            print(f"Successfully rendered {filename_base}.pdf.")
             return True
         except FileNotFoundError:
             print("\n---")

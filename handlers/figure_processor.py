@@ -45,7 +45,7 @@ class FigureProcessor:
                     f.write(asy_code) # Overwrite with the successful code
                 
                 # The path to be used in the \input command, with forward slashes for TeX
-                relative_path = os.path.join('figures', f"{filename_base}.tex")
+                relative_path = os.path.join('figures', f"{filename_base}.pdf")
                 return relative_path.replace(os.sep, '/')
 
         print(f"Failed to generate and render figure {index+1} after {self.MAX_RENDER_ATTEMPTS} attempts.")
