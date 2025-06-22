@@ -50,8 +50,17 @@ class GeminiLLM:
 
         try:
             response = self.model.generate_content([prompt, pdf_file])
+            # Clean response to get only the code
+            code = response.text.strip()
+            if code.startswith("```latex"):
+                code = code[len("```latex"):].strip()
+            elif code.startswith("```"):
+                code = code[len("```"):].strip()
+            if code.endswith("```"):
+                code = code[:-len("```")].strip()
+
             print("Text to LaTeX conversion complete.")
-            return response.text
+            return code
         finally:
             # Clean up the uploaded file
             genai.delete_file(pdf_file.name)
