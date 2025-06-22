@@ -1,5 +1,5 @@
-# requirements.txt
 google-generativeai
 python-dotenv
 PyMuPDF
 Pillow
+fastapi

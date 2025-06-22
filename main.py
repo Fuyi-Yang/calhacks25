@@ -35,13 +35,10 @@ def main():
 
     args = parser.parse_args()
 
-    # try:
     processor = DocumentProcessor(
         input_path=args.input_file, output_dir=args.output_dir, text_mode=args.mode
     )
     processor.process()
-    # except Exception as e:
-        # print(f"\nAn error occurred during processing: {e}")
 
 
 if __name__ == "__main__":
