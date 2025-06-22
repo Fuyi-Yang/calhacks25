@@ -4,24 +4,32 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SSE } from "@/lib/sse";
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await fetch("/api/upload", {
+    // @ts-ignore bro
+    const eventSource = new SSE("/api/process", {
+      payload: formData,
       method: "POST",
-      body: formData,
+    });
+    eventSource.addEventListener("message", console.log);
+    eventSource.addEventListener("end", (e: any) => {
+      console.log(e);
+      eventSource.close();
     });
 
-    const data = await res.json();
-    setMessage(data.message);
+    setMessage("sent!");
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
