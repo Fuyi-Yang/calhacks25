@@ -38,11 +38,23 @@ class DocumentProcessor:
         else:
             raise ValueError(f"Unsupported file type: {ext}")
 
+    def _validate_output(self, s):
+        s = s.strip(" \n")
+    
+        # Check if it starts and ends with ```latex ... ```
+        if s.startswith("```latex") and s.endswith("```"):
+            # Extract everything between the opening line and the closing ```
+            # NOTE:might have issue
+            return s[8:-3].strip()
+        
+        # Otherwise, just return the string as-is
+        return s
+
     def process(self):
         """Executes the full document processing workflow."""
         print("--- Starting Document Processing ---")
         self._prepare_pdf()
-        
+
         # --- Text Processing Path ---
         # The LLM can process the PDF directly, which is more robust than text extraction.
         latex_template = self.llm.extract_text_to_latex(self.pdf_path, self.text_mode)
@@ -60,15 +72,19 @@ class DocumentProcessor:
             generated_figure_files = fig_processor.process_figures_in_parallel(figure_descriptions)
         else:
             print("No figures found or described. Skipping figure generation.")
-            
+
         # --- Merging Path ---
         print("\n--- Finalizing LaTeX Document ---")
         final_latex_doc = self.llm.merge_latex_and_figures(latex_template, generated_figure_files)
-        
+
+        # --- validate output
+        print("\n--- Validating LaTeX Document ---")
+        val_final_latex_doc = self._validate_output(final_latex_doc)
+
         # --- Output ---
         output_filename = os.path.splitext(os.path.basename(self.pdf_path))[0] + ".tex"
         output_filepath = os.path.join(self.output_dir, output_filename)
         with open(output_filepath, "w", encoding='utf-8') as f:
-            f.write(final_latex_doc)
+            f.write(val_final_latex_doc)
             
         print(f"\n✅ Success! Final document saved to: {output_filepath}")

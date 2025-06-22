@@ -43,6 +43,8 @@ class GeminiLLM:
         Ensure the output is only the LaTeX code, starting with \\documentclass{{article}}.
         Make sure to include all the packages used in the LaTeX code.
         Do not include any other explanations or preamble.
+        If any extraneous text appears on the PDF that doesn't
+        relate directly to the main text, do not include it.
         """
         
         pdf_file = genai.upload_file(path=pdf_path, display_name=os.path.basename(pdf_path))
