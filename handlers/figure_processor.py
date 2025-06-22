@@ -23,10 +23,12 @@ class FigureProcessor:
         Returns:
             The relative path to the generated .tex file on success, otherwise None.
         """
+
+        current_description = description
         for attempt in range(self.MAX_RENDER_ATTEMPTS):
             print(f"Processing figure {index+1}, attempt {attempt+1}...")
             # Step 1: Generate Asymptote code from description
-            asy_code = self.llm.generate_figure_code(description)
+            asy_code = self.llm.generate_figure_code(current_description)
             
             if not asy_code:
                 print(f"LLM failed to generate code for figure {index+1}.")
@@ -34,19 +36,34 @@ class FigureProcessor:
 
             # Step 2: Render the generated code
             filename_base = f"figure{index+1}"
-            success = self.renderer.compile_asymptote(
-                asy_code, self.figures_output_dir, filename_base
-            )
+
+            try:
+                success = self.renderer.compile_asymptote(
+                    asy_code, self.figures_output_dir, filename_base
+                )
+
+                if success:
+                    # On success, save the source .asy file and return the path for the .tex file
+                    asy_filepath = os.path.join(self.figures_output_dir, f"{filename_base}.asy")
+                    with open(asy_filepath, "w") as f:
+                        f.write(asy_code) # Overwrite with the successful code
+                    
+                    # The path to be used in the \input command, with forward slashes for TeX
+                    relative_path = os.path.join('figures', f"{filename_base}.pdf")
+                    return relative_path.replace(os.sep, '/')
+
+            except Exception as e:
+                current_description = description + "\n" + asy_code + "\nError: " + str(e)
             
-            if success:
-                # On success, save the source .asy file and return the path for the .tex file
-                asy_filepath = os.path.join(self.figures_output_dir, f"{filename_base}.asy")
-                with open(asy_filepath, "w") as f:
-                    f.write(asy_code) # Overwrite with the successful code
-                
-                # The path to be used in the \input command, with forward slashes for TeX
-                relative_path = os.path.join('figures', f"{filename_base}.pdf")
-                return relative_path.replace(os.sep, '/')
+#            if success:
+#                # On success, save the source .asy file and return the path for the .tex file
+#                asy_filepath = os.path.join(self.figures_output_dir, f"{filename_base}.asy")
+#                with open(asy_filepath, "w") as f:
+#                    f.write(asy_code) # Overwrite with the successful code
+#                
+#                # The path to be used in the \input command, with forward slashes for TeX
+#                relative_path = os.path.join('figures', f"{filename_base}.pdf")
+#                return relative_path.replace(os.sep, '/')
 
         print(f"Failed to generate and render figure {index+1} after {self.MAX_RENDER_ATTEMPTS} attempts.")
         return None
@@ -76,6 +93,9 @@ class FigureProcessor:
                     if result_path:
                         print(f"Successfully processed figure {index + 1}.")
                         successful_figures[index] = result_path
+                    else:
+                        print(f"Error processing figure {index+1}")
+
                 except Exception as e:
                     print(f"Error processing figure {index+1}: {e}")
 

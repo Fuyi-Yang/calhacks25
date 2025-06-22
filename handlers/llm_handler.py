@@ -41,7 +41,13 @@ class GeminiLLM:
         %%FIGURE_PLACEHOLDER_n%%, where 'n' is a sequential 1-based index.
         
         Ensure the output is only the LaTeX code, starting with \\documentclass{{article}}.
-        Make sure to include all the packages used in the LaTeX code.
+        Make sure to include all the packages used in the LaTeX code. Some of these packages include:
+        \\usepackage{{amsmath}}
+        \\usepackage{{amssymb}}
+        \\usepackage{{amsfonts}}
+        \\usepackage{{xcolor}}
+        \\usepackage{{graphics}}
+
         Do not include any other explanations or preamble.
         If any extraneous text appears on the PDF that doesn't
         relate directly to the main text, do not include it.
