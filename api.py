@@ -1,7 +1,13 @@
-from fastapi import FastAPI, UploadFile
-from sse_starlette.sse import EventSourceResponse
+import os
+from uuid import UUID, uuid4
+import threading
+
+import aiofiles
+from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-import time
+from starlette.responses import FileResponse
+
+from document_processor import DocumentProcessor
 
 app = FastAPI()
 
@@ -13,17 +19,37 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-def actually_process(file: UploadFile):
-    print(file.filename)
-    RETRY_TIMEOUT = 15000
-    yield {"event": "message", "retry": RETRY_TIMEOUT, "data": "what"}
-    time.sleep(1)
-    yield {"event": "message", "retry": RETRY_TIMEOUT, "data": "bro"}
-    time.sleep(1)
-    yield {"event": "end", "retry": RETRY_TIMEOUT, "data": "ok done"}
+status = {}
 
 
-@app.post("/process")
+@app.post("/verbatim")
 async def process_pdf(file: UploadFile):
-    return EventSourceResponse(actually_process(file))
+    task_id = uuid4()
+    _, ext = os.path.splitext(file.filename)
+    path = f"input/{task_id}{ext}"
+    async with aiofiles.open(path, "wb") as out_file:
+        await out_file.write(await file.read())
+    
+    status[task_id] = path
+
+    doc = DocumentProcessor(path, "output", "verbatim")
+    thread = threading.Thread(target=doc.process)
+    thread.start()
+
+    return {"tid": task_id}
+
+
+@app.get("/status/{tid}")
+async def pdf_status(tid: UUID):
+    if tid not in status:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    if os.path.exists(f"output/{tid}.tex"):
+        return {"status": "done"}
+    else:
+        return {"status": "processing"}
+
+@app.get("/dl/{tid}")
+async def pdf_dl(tid: UUID):
+    path = f"output/{tid}.tex"
+    return FileResponse(path, media_type="application/octet-stream")

@@ -3,4 +3,4 @@ python-dotenv
 PyMuPDF
 Pillow
 fastapi[standard]
-sse-starlette
+aiofiles
