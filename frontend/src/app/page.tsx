@@ -39,6 +39,7 @@ export default function Home() {
       method: "POST",
     }).then((r) => r.json());
 
+    setDone(false);
     setTask(tid);
     setMessage(`task ${tid} is ready to go!`);
   };
@@ -85,7 +86,7 @@ export default function Home() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-6 bg-gray-100">
       <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h1 className="text-xl font-bold mb-4">Upload PDF or Image</h1>
+        <h1 className="text-xl font-bold mb-4">Texify</h1>
         <Label htmlFor="upload">Select a PDF or Image</Label>
         <Input
           id="upload"
@@ -95,7 +96,7 @@ export default function Home() {
           className="mb-4"
         />
         <div className="flex justify-between">
-          <Button onClick={handleUpload} disabled={!file}>
+          <Button onClick={handleUpload} disabled={!file || (file && !!task && !done)}>
             Upload
           </Button>
           <Button onClick={dl} disabled={!done}>
